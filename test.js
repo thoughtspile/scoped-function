@@ -9,11 +9,49 @@ const f = ScopedFunction('x', 'y', 'return sin(x) + cos(y)', { sin: Math.sin, co
 
 console.log('Unit tests...');
 assert(f(1, 2) === fBaseline(1, 2), 'Same value');
-// name conflicts
-// fancy item nesting
-// missing scope argument
-// constructor error
-// scope / arguments precednce
+
+assert(ScopedFunction('innerFunction', 'return innerFunction', {})(10) === 10, 'innerFunction param');
+assert(ScopedFunction('__scope__', 'return __scope__', {})(10) === 10, '"__scope__" param');
+assert(ScopedFunction('return __scope__', { __scope__: 10 })() === 10, '"__scope__" expansion');
+
+assert.deepStrictEqual(ScopedFunction('x, y', 'return [x, y]', {})(1, 2), [1, 2], 'squashed comma arguments');
+
+assert.throws(() => ScopedFunction('return 0'), 'missing scope argument');
+// empty body, etc as per spec https://www.ecma-international.org/ecma-262/6.0/#sec-createdynamicfunction
+assert(ScopedFunction({})() == null, 'scope only => empty body');
+
+assert(new ScopedFunction('return 0', {}), 'can be invoked as a constructor');
+
+assert.throws(() => ScopedFunction('{{', {}), 'Function throw on body propagates');
+assert.throws(() => ScopedFunction('-x', 'return 0', {}), 'Function throw on arguments propagates');
+
+// precedence
+global.x = 100;
+assert(ScopedFunction('return x', {})() === 100, 'Global scope is accessible');
+assert(ScopedFunction('return x', { x: 50 })() === 50, 'Scope shadows global');
+assert(ScopedFunction('x', 'return x', { x: 50 })(10) === 10, 'Parameter shadows scope');
+assert(ScopedFunction('x', 'return x', {})(10) === 10, 'Parameter shadows global');
+global.x = void 0;
+
+assert(ScopedFunction('{x}', 'return x', {})({ x: 10 }) === 10, 'Destructuring');
+assert(ScopedFunction('x = 10', 'return x', {})() === 10, 'Default');
+assert.deepStrictEqual(ScopedFunction('...x', 'return x', {})(1,2), [1,2], 'Rest');
+
+const o = { x: 10 };
+// assert(ScopedFunction('return this', {}).bind(o)() === o, 'can be bound');
+// assert(ScopedFunction('return this', {}).call(o) === o, 'can be called in context');
+// assert(ScopedFunction('return this', {}).apply(o) === o, 'can be applied to context');
+
+assert(ScopedFunction('x', 'return x', {}).call(null, 10) === 10, 'can be applied to arguments');
+assert(ScopedFunction('x', 'return x', {}).apply(null, [10]) === 10, 'can be applied to arguments');
+
+// assert(ScopedFunction(`ga = 10`, {})() && ga === 10, 'respects non-strict mode');
+assert.throws(() => ScopedFunction(`'use strict'; gb = 10`, {})(), 'respects strict mode');
+
+// assert.deepStrictEqual(ScopedFunction('return arguments', {})(), [], 'can use "arguments"');
+
+// EITHER restriction: one arg per formal param OR parse argument string with escapes
+//   proposal: drop interfce compatibility
 console.log('Unit tests OK');
 
 console.log('Benchmarks:', N_TRIAL, 'iterations');
