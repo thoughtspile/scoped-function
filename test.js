@@ -35,24 +35,30 @@ global.x = void 0;
 
 assert(ScopedFunction('{x}', 'return x', {})({ x: 10 }) === 10, 'Destructuring');
 assert(ScopedFunction('x = 10', 'return x', {})() === 10, 'Default');
+assert(ScopedFunction('x = 10', 'return x', {})(20) === 20, 'Default is overridable');
 assert.deepStrictEqual(ScopedFunction('...x', 'return x', {})(1,2), [1,2], 'Rest');
 
 const o = { x: 10 };
-// assert(ScopedFunction('return this', {}).bind(o)() === o, 'can be bound');
-// assert(ScopedFunction('return this', {}).call(o) === o, 'can be called in context');
-// assert(ScopedFunction('return this', {}).apply(o) === o, 'can be applied to context');
+assert(ScopedFunction('return this', {}).bind(o)() === o, 'can be bound');
+assert(ScopedFunction('return this', {}).call(o) === o, 'can be called in context');
+assert(ScopedFunction('return this', {}).apply(o) === o, 'can be applied to context');
 
 assert(ScopedFunction('x', 'return x', {}).call(null, 10) === 10, 'can be applied to arguments');
 assert(ScopedFunction('x', 'return x', {}).apply(null, [10]) === 10, 'can be applied to arguments');
 
-// assert(ScopedFunction(`ga = 10`, {})() && ga === 10, 'respects non-strict mode');
 assert.throws(() => ScopedFunction(`'use strict'; gb = 10`, {})(), 'respects strict mode');
+assert(ScopedFunction(`ga = 10`, {})() == null && ga === 10, 'non-strict mode by default');
+assert.throws(() => ScopedFunction('x', `'use strict'; gc = 10`, { x: 100 })(), 'still respects strict mode with arg expansion');
 
-// assert.deepStrictEqual(ScopedFunction('return arguments', {})(), [], 'can use "arguments"');
+assert.deepStrictEqual(ScopedFunction('return arguments.length', {})(), 0, 'no extra stuff in "arguments"');
+assert(ScopedFunction('return eval("123")', {})() === 123, 'can use "eval"');
+
+assert(ScopedFunction('', {}).name === Function().name, 'name is set to "anonymous"');
 
 // EITHER restriction: one arg per formal param OR parse argument string with escapes
 //   proposal: drop interfce compatibility
 console.log('Unit tests OK');
+
 
 console.log('Benchmarks:', N_TRIAL, 'iterations');
 
@@ -63,3 +69,14 @@ console.timeEnd('scoped');
 console.time('baseline');
 for (var i = 0; i < N_TRIAL; i++) fBaseline(1, 2);
 console.timeEnd('baseline');
+
+const fancyArgs = ScopedFunction('{x = 0}', '...y', 'return sin(x) + cos(y[0])', { sin: Math.sin, cos: Math.cos });
+function fancyArgsBaseline ({x = 0}, ...y) { return Math.sin(x) + Math.cos(y[0]); }
+
+console.time('scoped-fancy-args');
+for (var i = 0; i < N_TRIAL; i++) fancyArgs({}, 2);
+console.timeEnd('scoped-fancy-args');
+
+console.time('baseline-fancy-args');
+for (var i = 0; i < N_TRIAL; i++) fancyArgsBaseline(1, 2);
+console.timeEnd('baseline-fancy-args');

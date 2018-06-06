@@ -21,16 +21,6 @@ function deepContains(nestedArr, str) {
   return false;
 }
 
-function partial(fn, inject, freeNames) {
-  const innerFnVarName = noconflictVarName('unboundFn', freeNames);
-  const injectedVarName = noconflictVarName('injected', freeNames);
-  // minification-safe injection
-  return new Function(innerFnVarName, injectedVarName, `
-    return function(${'' + freeNames}) {
-      return ${innerFnVarName}(${injectedVarName},${'' + freeNames});
-    };`)(fn, inject);
-}
-
 function ScopedFunction() {
   // parse arguments
   const scopeRef = arguments[arguments.length - 1];
@@ -47,18 +37,18 @@ function ScopedFunction() {
     return acc;
   }, {});
 
-  // inject scope into body
+  // expand scope inside body
   const scopeVarName = noconflictVarName('__scope__', formalArguments.concat(scopeNames), body);
   const expandScope = scopeNames
     .map(v => `var ${v} = ${scopeVarName}['${v}'];`)
     .join('\n');
   const scopedBody = expandScope + '\n' + body;
 
-  // compile function
-  const innerFunction = new Function(scopeVarName, formalArguments, scopedBody);
-
-  // bind to scope
-  return partial(innerFunction, scope, formalArguments);
+  // minification-safe injection
+  return new Function(scopeVarName, `
+    return function anonymous(${'' + formalArguments}) {
+      ${scopedBody}
+    };`)(scope);
 }
 
 module.exports = ScopedFunction;
