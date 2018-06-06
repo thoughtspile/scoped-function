@@ -1,24 +1,10 @@
 'use strict';
 
-function noconflictVarName(name, stopNames, body) {
-  while (deepContains(stopNames, name) || (body && body.indexOf(name) !== -1)) {
+function noconflictVarName(name, exclude) {
+  while (exclude.some(el => ('' + el).indexOf(name) !== -1)) {
     name += '_';
   }
   return name;
-}
-
-function deepContains(nestedArr, str) {
-  // typeof array
-  if (!nestedArr || !nestedArr.length) {
-    return false;
-  }
-  for (var i = 0; i < nestedArr.length; i++) {
-    const el = nestedArr[i];
-    if ((nestedArr instanceof Object && deepContains(el, str)) || el === str) {
-      return true;
-    }
-  }
-  return false;
 }
 
 function ScopedFunction() {
@@ -29,25 +15,23 @@ function ScopedFunction() {
   for (let i = 0; i < arguments.length - 2; i++) {
     formalArguments.push(arguments[i]);
   }
+  const formalArgumentStr = '' + formalArguments;
 
   // protect against scope mutations
-  const scopeNames = Object.keys(scopeRef).filter(n => !deepContains(formalArguments, n));
+  const scopeNames = Object.getOwnPropertyNames(scopeRef);
   const scope = scopeNames.reduce((acc, k) => {
     acc[k] = scopeRef[k];
     return acc;
   }, {});
 
   // expand scope inside body
-  const scopeVarName = noconflictVarName('__scope__', formalArguments.concat(scopeNames), body);
-  const expandScope = scopeNames
-    .map(v => `var ${v} = ${scopeVarName}['${v}'];`)
-    .join('\n');
-  const scopedBody = expandScope + '\n' + body;
+  const scopeVarName = noconflictVarName('_scope', [formalArgumentStr, scopeNames, body]);
 
   // minification-safe injection
   return new Function(scopeVarName, `
-    return function anonymous(${'' + formalArguments}) {
-      ${scopedBody}
+    ${scopeNames.map(v => `var ${v} = ${scopeVarName}['${v}'];`).join('\n')}
+    return function anonymous(${formalArgumentStr}) {
+      ${body}
     };`)(scope);
 }
 

@@ -8,9 +8,12 @@ const f = ScopedFunction('x', 'y', 'return sin(x) + cos(y)', { sin: Math.sin, co
 
 
 console.log('Unit tests...');
+assert(typeof ScopedFunction({}) === 'function', 'typeof OK');
+assert(ScopedFunction({}) instanceof Function, 'instanceof Function');
+
+assert(ScopedFunction('return sin', Math)() === Math.sin, 'expands non-enumerable properties');
 assert(f(1, 2) === fBaseline(1, 2), 'Same value');
 
-assert(ScopedFunction('innerFunction', 'return innerFunction', {})(10) === 10, 'innerFunction param');
 assert(ScopedFunction('__scope__', 'return __scope__', {})(10) === 10, '"__scope__" param');
 assert(ScopedFunction('return __scope__', { __scope__: 10 })() === 10, '"__scope__" expansion');
 
@@ -32,6 +35,16 @@ assert(ScopedFunction('return x', { x: 50 })() === 50, 'Scope shadows global');
 assert(ScopedFunction('x', 'return x', { x: 50 })(10) === 10, 'Parameter shadows scope');
 assert(ScopedFunction('x', 'return x', {})(10) === 10, 'Parameter shadows global');
 global.x = void 0;
+
+const s = { x: 10 };
+const retainer = ScopedFunction('return x', s);
+s.x = 1000;
+assert(retainer() === 10, 'scope is cloned');
+
+const hub = { name: 10 };
+const sync = ScopedFunction('return hub.name', { hub });
+hub.name = 20;
+assert(sync() === 20, 'scope items are shared by reference');
 
 assert(ScopedFunction('{x}', 'return x', {})({ x: 10 }) === 10, 'Destructuring');
 assert(ScopedFunction('x = 10', 'return x', {})() === 10, 'Default');
