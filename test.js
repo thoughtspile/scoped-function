@@ -93,3 +93,16 @@ console.timeEnd('scoped-fancy-args');
 console.time('baseline-fancy-args');
 for (var i = 0; i < N_TRIAL; i++) fancyArgsBaseline(1, 2);
 console.timeEnd('baseline-fancy-args');
+
+
+const userSolution = `
+function ageMode(data) {
+  return _.maxBy(
+    _.values(_.groupBy(data, 'age')),
+    v => v.length
+  )[0].age;
+}
+`;
+const _ = require('lodash');
+const userFn = ScopedFunction(`return ${userSolution}`, { _ });
+const isValid = userFn([{ age: 10 }, { age: 20 }, { age: 10 }]) === 10
