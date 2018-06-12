@@ -74,7 +74,7 @@ the browser, but remember that your code is compiled as-is, not transpiled,
 and would break in browsers with poor ES6 support, like Safari.
 
 Also note that this library does not give you a secure sanbox for untrusted code
-— use https://github.com/patriksimek/vm2 for that.
+— use [vm2](https://github.com/patriksimek/vm2) for that.
 
 ## Installation
 ```sh
@@ -83,3 +83,7 @@ $ yarn add scoped-function
 ```
 
 Made by [Vladimir Klepov](https://github.com/thoughtspile).
+
+## License
+
+[MIT](LICENSE)
