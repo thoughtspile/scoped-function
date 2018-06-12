@@ -41,6 +41,11 @@ const retainer = ScopedFunction('return x', s);
 s.x = 1000;
 assert(retainer() === 10, 'scope is cloned');
 
+const sDel = { x: 10 };
+const retainerDel = ScopedFunction('return x', sDel);
+delete sDel.x;
+assert(retainerDel() === 10, 'can not delete from scope');
+
 const hub = { name: 10 };
 const sync = ScopedFunction('return hub.name', { hub });
 hub.name = 20;
@@ -73,6 +78,21 @@ assert(ScopedFunction('', {}).name === Function().name, 'name is set to "anonymo
 console.log('Unit tests OK');
 
 
+console.log('Integration tests...');
+// Build your smallest DSL ever:
+const trig = ScopedFunction('x', 'return sin(pi * x) + cos(pi * x)', {
+  sin: Math.sin,
+  cos: Math.cos,
+  pi: Math.PI
+});
+assert(trig(1) === Math.sin(Math.PI) + Math.cos(Math.PI), 'Trig');
+
+// Add slight rewriting:
+const compileMath = e => ScopedFunction('x', `return (${e});`, Math);
+assert(compileMath('atan(exp(x) - 1)')(0) === 0, 'rewrite compiler');
+console.log('Integration tests OK');
+
+
 console.log('Benchmarks:', N_TRIAL, 'iterations');
 
 console.time('scoped');
@@ -93,16 +113,3 @@ console.timeEnd('scoped-fancy-args');
 console.time('baseline-fancy-args');
 for (var i = 0; i < N_TRIAL; i++) fancyArgsBaseline(1, 2);
 console.timeEnd('baseline-fancy-args');
-
-
-const userSolution = `
-function ageMode(data) {
-  return _.maxBy(
-    _.values(_.groupBy(data, 'age')),
-    v => v.length
-  )[0].age;
-}
-`;
-const _ = require('lodash');
-const userFn = ScopedFunction(`return ${userSolution}`, { _ });
-const isValid = userFn([{ age: 10 }, { age: 20 }, { age: 10 }]) === 10

@@ -1,7 +1,7 @@
 'use strict';
 
 function noconflictVarName(name, exclude) {
-  while (exclude.some(el => ('' + el).indexOf(name) !== -1)) {
+  while (exclude.some(el => el === name)) {
     name += '_';
   }
   return name;
@@ -9,7 +9,7 @@ function noconflictVarName(name, exclude) {
 
 function ScopedFunction() {
   // parse arguments
-  const scopeRef = arguments[arguments.length - 1];
+  const scope = arguments[arguments.length - 1];
   const body = arguments[arguments.length - 2];
   const formalArguments = [];
   for (let i = 0; i < arguments.length - 2; i++) {
@@ -18,14 +18,10 @@ function ScopedFunction() {
   const formalArgumentStr = '' + formalArguments;
 
   // protect against scope mutations
-  const scopeNames = Object.getOwnPropertyNames(scopeRef);
-  const scope = scopeNames.reduce((acc, k) => {
-    acc[k] = scopeRef[k];
-    return acc;
-  }, {});
+  const scopeNames = Object.getOwnPropertyNames(scope);
 
   // expand scope inside body
-  const scopeVarName = noconflictVarName('_scope', [formalArgumentStr, scopeNames, body]);
+  const scopeVarName = noconflictVarName('_scope', scopeNames);
 
   // minification-safe injection
   return new Function(scopeVarName, `

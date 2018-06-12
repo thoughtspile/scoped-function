@@ -5,11 +5,25 @@
   "main": "lib/scoped-function.js",
   "scripts": {
     "build": "babel ./src --out-dir ./lib",
-    "test": "npm run build && node test"
+    "test": "npm run build && node test",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "utility",
+    "compiler",
+    "dsl",
+    "metaprogramming"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thoughtspile/scoped-function.git"
+  },
+  "bugs": {
+    "url": "https://github.com/thoughtspile/scoped-function/issues"
+  },
+  "homepage": "https://github.com/thoughtspile/scoped-function#readme",
+  "author": "Vladimir Klepov",
+  "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-es2015-modules-umd": "^6.24.1",
@@ -22,5 +36,6 @@
     "plugins": [
       "transform-es2015-modules-umd"
     ]
-  }
+  },
+  "dependencies": {}
 }

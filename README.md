@@ -4,14 +4,14 @@
 The properties of the scope object can be accesed in the function body as if they
 were closure variables: `ScopedFunction('return s;', { s: 'hello' }) -> 'hello'`.
 
-Build paper-thin DSLs over JavaScript syntax — allow your users to write math functions
-in standard syntax, `exp(10 * cos(x))`, without prepending the nasty `Math`
+Build paper-thin DSLs over JavaScript syntax — let your users write math in
+standard syntax, `exp(10 * cos(x))`, without prepending the nasty `Math`
 builtin, or pass libraries to in-browser JS playgrounds.
 
 There's no runtime performance penalty for functions compiled using `ScopedFunction`.
 This library is a great foundation for safer and faster `eval` or `with`, the
-infamous optimization busters. The library is tiny: 38 SLOC, or just 500 bytes
-when minified.
+infamous optimization busters. `ScopedFunction` is tiny: <40 SLOC, or around
+500 bytes minified.
 
 ## Usage
 
@@ -19,7 +19,7 @@ when minified.
 // Use whichever you like
 const ScopedFunction = require('ScopedFunction');
 import ScopedFunction from 'scoped-function';
-// You can also drop lib/scoped-function into your HTML if you feel like it
+// You can also drop lib/scoped-function.js into your HTML if you feel like it
 
 // Build your smallest DSL ever:
 const trig = ScopedFunction('x', 'return sin(pi * x) + cos(pi * x)', {
@@ -30,7 +30,7 @@ const trig = ScopedFunction('x', 'return sin(pi * x) + cos(pi * x)', {
 const v = trig(1); // = -1
 
 // Add slight rewriting:
-const compileMath = e => ScopedFunction('x', `return ${e}`, Math);
+const compileMath = e => ScopedFunction('x', `return (${e});`, Math);
 compileMath('atan(exp(x) - 1)')(0); // = 0
 
 // Inject libraries into user code
@@ -45,7 +45,8 @@ function ageMode(data) {
 }
 `;
 const _ = require('lodash');
-const userFn = ScopedFunction(`return ${userSolution}`, { _ });
+// Note return + call: we can't parse the user-supplied function, but still inject the "_"
+const userFn = ScopedFunction(`return (${userSolution});`, { _ })();
 const isValid = userFn([{ age: 10 }, { age: 20 }, { age: 10 }]) === 10;
 
 // You can also use ScopedFunction as a constructor:
@@ -66,7 +67,7 @@ The functions produced mimic the ones that come from `Function(...)`:
  - accessing `arguments` still works
  - name is set to `anonymous` as per the spec.
 
-If you find a deviation, drop an issue.
+If you find a deviation from the [spec](https://www.ecma-international.org/ecma-262/6.0/#sec-function-constructor), drop an issue.
 
 Both `Function` and `ScopedFunction` accept non-simple ES6 formal
 parameters: `...rest`, `{ destructuring }`, and `default = true`. Use these in
