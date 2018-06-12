@@ -1,5 +1,5 @@
 const assert = require('assert');
-const ScopedFunction = require('./index');
+const ScopedFunction = require('./lib/scoped-function.js');
 
 
 const N_TRIAL = 100000000;

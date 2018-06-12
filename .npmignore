@@ -1,0 +1,10 @@
+node_modules
+.DS_STORE
+*~
+.tmp
+.git
+.gitignore
+.editorconfig
+*.md
+src/**/*
+test.js

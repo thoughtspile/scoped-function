@@ -1,17 +1,17 @@
-# ScopedFunction — pass scope to new Function
+# ScopedFunction = new Function + scope
 
 `ScopedFunction` allows you to inject scope object into `Function` constructor.
 The properties of the scope object can be accesed in the function body as if they
 were closure variables: `ScopedFunction('return s;', { s: 'hello' }) -> 'hello'`.
 
-Build paper-thin DSLs over js syntax — allow your users to write math functions
-in standard syntax (`exp(10 * cos(x))`), without prepending the nasty `Math`
+Build paper-thin DSLs over JavaScript syntax — allow your users to write math functions
+in standard syntax, `exp(10 * cos(x))`, without prepending the nasty `Math`
 builtin, or pass libraries to in-browser JS playgrounds.
 
 There's no runtime performance penalty for functions compiled using `ScopedFunction`.
-This library is a great foundation for safer and faster `eval` or `with`, which are known
-to be huge optimization busters. The library itself is tiny: 38 SLOC, or just
-500 bytes when minified.
+This library is a great foundation for safer and faster `eval` or `with`, the
+infamous optimization busters. The library is tiny: 38 SLOC, or just 500 bytes
+when minified.
 
 ## Usage
 
@@ -21,7 +21,7 @@ const ScopedFunction = require('ScopedFunction');
 import ScopedFunction from 'scoped-function';
 // You can also drop lib/scoped-function into your HTML if you feel like it
 
-// Build your smallest DSL:
+// Build your smallest DSL ever:
 const trig = ScopedFunction('x', 'return sin(pi * x) + cos(pi * x)', {
   sin: Math.sin,
   cos: Math.cos,
@@ -29,7 +29,7 @@ const trig = ScopedFunction('x', 'return sin(pi * x) + cos(pi * x)', {
 });
 const v = trig(1); // = -1
 
-// Do slight rewriting:
+// Add slight rewriting:
 const compileMath = e => ScopedFunction('x', `return ${e}`, Math);
 compileMath('atan(exp(x) - 1)')(0); // = 0
 

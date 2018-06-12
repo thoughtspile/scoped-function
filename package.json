@@ -2,11 +2,21 @@
   "name": "scoped-function",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/scoped-function.js",
   "scripts": {
-    "test": "node test"
+    "build": "babel ./src --out-dir ./lib",
+    "test": "npm run build && node test"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0"
+  },
+  "babel": {
+    "presets": [
+      "env"
+    ]
+  }
 }
